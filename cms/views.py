@@ -30,6 +30,13 @@ class SearchCCTVForm(forms.Form):
     InstallationDate = forms.DateField(label = 'CCTV Installation Date', required = False)
     AGENT_ID = forms.CharField(label = 'Agent ID', max_length = 64, required = False)
 
+class SearchAgentForm(forms.Form):
+    ID = forms.CharField(label = 'Agent ID', max_length = 64, required = False)
+    Name = forms.CharField(label = 'Agent Name', max_length = 64, required = False)
+    Position = forms.CharField(label = 'Agent Position', max_length = 64, required = False)
+    Phone = forms.CharField(label = 'Agent Phone', max_length = 64, required = False)
+    CCTV_ID = forms.CharField(label = 'CCTV ID', max_length = 64, required = False)
+
 
 def dictfetchall(cursor):
     columns = [col[0] for col in cursor.description]
@@ -82,6 +89,8 @@ def admin(request, action):
                 return allocateCCTV(request)
             elif action == 'searchCCTV/':
                 return searchCCTV(request)
+            elif action == 'searchAgent/':
+                return searchAgent(request)
             else:
                 return render(request, 'cms/adminHome.html')
     return redirect('/cms/login/')
@@ -228,6 +237,46 @@ def searchCCTV(request):
                 except:
                     messages.info(request, 'DB OPERATION DENIED')
         return redirect('/cms/admin/searchCCTV/')
+
+def searchAgent(request):
+    if request.method == 'GET':
+        try:
+            rows = []
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM AGENT')
+            rows.append('AGENT TABLE')
+            rows += dictfetchall(cursor)
+            cursor.execute('SELECT * FROM CCTV')
+            rows.append('CCTV TABLE')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED')
+        form = SearchAgentForm()
+        return render(request, 'cms/searchAgent.html', {'rows': rows, 'form': form})
+    elif request.method == 'POST':
+        form = SearchAgentForm(request.POST)
+        if request.POST['action'] == 'Search Agent':
+            if form.is_valid():
+                searchAgent_id = form.cleaned_data['ID']
+                searchAgent_id = 'TRUE' if searchAgent_id == '' else 'E.ID = \'{}\''.format(searchAgent_id)
+                searchAgent_name = form.cleaned_data['Name']
+                searchAgent_name = 'TRUE' if searchAgent_name == '' else 'Name = \'{}\''.format(searchAgent_name)
+                searchAgent_position = form.cleaned_data['Position']
+                searchAgent_position = 'TRUE' if searchAgent_position == '' else 'Position = \'{}\''.format(searchAgent_position)
+                searchAgent_phone = form.cleaned_data['Phone']
+                searchAgent_phone = 'TRUE' if searchAgent_phone == '' else 'Phone = \'{}\''.format(searchAgent_phone)
+                searchAgent_cctv_id = form.cleaned_data['CCTV_ID']
+                searchAgent_cctv_id = 'TRUE' if searchAgent_cctv_id == '' else 'E.ID = C.AGENT_ID AND C.ID = \'{}\''.format(searchAgent_cctv_id)
+                print('SELECT E.* FROM AGENT E, CCTV C WHERE {} AND {} AND {} AND {} AND {}'.format(searchAgent_id, searchAgent_name, searchAgent_position, searchAgent_phone, searchAgent_cctv_id))
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('SELECT DISTINCT E.* FROM AGENT E, CCTV C WHERE {} AND {} AND {} AND {} AND {}'.format(searchAgent_id, searchAgent_name, searchAgent_position, searchAgent_phone, searchAgent_cctv_id))
+                    rows = dictfetchall(cursor)
+                    for row in rows:
+                        messages.info(request, row)
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
+        return redirect('/cms/admin/searchAgent/')
 
 
 def agent(request, action):
