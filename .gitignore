@@ -5,4 +5,3 @@ db.mysql
 /static
 .DS_Store
 myvenv
-settings.py
