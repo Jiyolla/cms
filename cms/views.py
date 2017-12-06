@@ -14,6 +14,12 @@ class AddAgentForm(forms.Form):
     Position = forms.CharField(label = 'Agent Position', max_length = 64, required = False)
     Phone = forms.CharField(label = 'Agent Phone', max_length = 64, required = False)
 
+class AddCCTVForm(forms.Form):
+    ID = forms.CharField(label = 'CCTV ID', max_length = 64)
+    Model = forms.CharField(label = 'CCTV Model', max_length = 64, required = False)
+    InstallationDate = forms.DateField(label = 'CCTV Installation Date', required = False)
+    AGENT_ID = forms.CharField(label = 'Agent ID', max_length = 64, required = False)
+
 def dictfetchall(cursor):
     columns = [col[0] for col in cursor.description]
     return [
@@ -22,7 +28,7 @@ def dictfetchall(cursor):
     ]
 
 def login(request):
-    if request.method == "GET":
+    if request.method == 'GET':
         if request.session.has_key('login_id'):
             login_id = request.session['login_id']
             if login_id == 'admin':
@@ -32,14 +38,17 @@ def login(request):
         else:
             form = LoginForm()
             return render(request, 'cms/login.html', {'form': form})
-    elif request.method == "POST":
+    elif request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
             login_id = form.cleaned_data['login_id']
             login_pw = form.cleaned_data['login_pw']
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM AGENT WHERE ID = %s AND PW = %s", [login_id, login_pw])
+            try:
+                cursor = connection.cursor()
+                cursor.execute('SELECT * FROM AGENT WHERE ID = %s AND PW = %s', [login_id, login_pw])
                 row = cursor.fetchall()
+            except:
+                messages.info(request, 'DB OPERATION DENIED')
             if row:
                 request.session['login_id'] = login_id
         return redirect('/cms/login/')
@@ -55,13 +64,16 @@ def admin(request):
     return render(request, 'cms/adminHome.html')
 
 def addAgent(request):
-    if request.method == "GET":
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM AGENT")
+    if request.method == 'GET':
+        try:
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM AGENT')
             rows = dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED')
         form = AddAgentForm()
         return render(request, 'cms/addAgent.html', {'rows': rows, 'form': form})
-    elif request.method == "POST":
+    elif request.method == 'POST':
         form = AddAgentForm(request.POST)
         if request.POST['action'] == 'Add Agent':
             if form.is_valid():
@@ -70,19 +82,51 @@ def addAgent(request):
                 addAgent_name = form.cleaned_data['Name']
                 addAgent_position = form.cleaned_data['Position']
                 addAgent_phone = form.cleaned_data['Phone']
-                with connection.cursor() as cursor:
-                    cursor.execute("SELECT * FROM AGENT WHERE ID = %s", [addAgent_id])
-                    row = cursor.fetchall()
-                    if not row:
-                        cursor.execute('INSERT INTO AGENT VALUES(%s, %s, %s, %s, %s)', [addAgent_id, addAgent_pw, addAgent_name, addAgent_position, addAgent_phone])
-                    else:
-                        messages.info(request, 'Agent already Exist')
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('INSERT INTO AGENT VALUES(%s, %s, %s, %s, %s)', [addAgent_id, addAgent_pw, addAgent_name, addAgent_position, addAgent_phone])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
         elif request.POST['action'] == 'Remove Agent':
             if form.is_valid():
                 removeAgent_id = form.cleaned_data['ID']
-                with connection.cursor() as cursor:
+                try:
+                    cursor = connection.cursor()
                     cursor.execute('DELETE FROM AGENT WHERE ID = %s', [removeAgent_id])
-    return redirect('/cms/admin/addAgent/')
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
+        return redirect('/cms/admin/addAgent/')
+
+def addCCTV(request):
+    if request.method == 'GET':
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT * FROM CCTV')
+            rows = dictfetchall(cursor)
+        form = AddCCTVForm()
+        return render(request, 'cms/addCCTV.html', {'rows': rows, 'form': form})
+    elif request.method == 'POST':
+        form = AddCCTVForm(request.POST)
+        if request.POST['action'] == 'Add CCTV':
+            if form.is_valid():
+                addCCTV_id = form.cleaned_data['ID']
+                addCCTV_model = form.cleaned_data['Model']
+                addCCTV_installation_date = form.cleaned_data['InstallationDate']
+                addCCTV_agent_id = form.cleaned_data['AGENT_ID']
+                addCCTV_agent_id = 'admin' if addCCTV_agent_id == '' else addCCTV_agent_id
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('INSERT INTO CCTV VALUES(%s, %s, %s, %s)', [addCCTV_id, addCCTV_model, addCCTV_installation_date, addCCTV_agent_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
+        elif request.POST['action'] == 'Remove CCTV':
+            if form.is_valid():
+                removeCCTV_id = form.cleaned_data['ID']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('DELETE FROM CCTV WHERE ID = %s', [removeCCTV_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
+        return redirect('/cms/admin/addCCTV/')
 
 def agent(request):
     return render(request, 'cms/agentHome.html')

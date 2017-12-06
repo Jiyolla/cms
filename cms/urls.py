@@ -6,7 +6,7 @@ urlpatterns = [
     url(r'^logout/$',views.logout),                             #1, 3
     url(r'^admin/$', views.admin),
     url(r'^admin/addAgent/$', views.addAgent),                  #2
-    #url(r'^admin/addCCTV/$', views.addCCTV),                    #4
+    url(r'^admin/addCCTV/$', views.addCCTV),                    #4
     #url(r'^admin/allocateCCTV/$', views.allocateCCTV),          #5
     #url(r'^admin/searchCCTV/$', views.searchCCTV),              #6
     #url(r'^admin/searchAgent/$', views.searchAgent),            #7
