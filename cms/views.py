@@ -14,6 +14,12 @@ class AddAgentForm(forms.Form):
     Position = forms.CharField(label = 'Agent Position', max_length = 64, required = False)
     Phone = forms.CharField(label = 'Agent Phone', max_length = 64, required = False)
 
+class ChangeInfoForm(forms.Form):
+    PW = forms.CharField(label = 'Agent PW', max_length = 64, required = False)
+    Name = forms.CharField(label = 'Agent Name', max_length = 64, required = False)
+    Position = forms.CharField(label = 'Agent Position', max_length = 64, required = False)
+    Phone = forms.CharField(label = 'Agent Phone', max_length = 64, required = False)
+
 class AddCCTVForm(forms.Form):
     ID = forms.CharField(label = 'CCTV ID', max_length = 64)
     Model = forms.CharField(label = 'CCTV Model', max_length = 64, required = False)
@@ -282,11 +288,43 @@ def searchAgent(request):
 def agent(request, action):
     if request.session.has_key('login_id'):
         if action == 'changeInfo/':
-            return addAgent(request)
+            return changeInfo(request)
         elif action == 'manageCCTV/':
-            return addCCTV(request)
+            return manageCCTV(request)
         elif action == 'uploadData/':
-            return allocateCCTV(request)
+            return uploadData(request)
         else:
             return render(request, 'cms/agentHome.html')
     return redirect('/cms/login/')
+
+def changeInfo(request):
+    changeInfo_id = '\'{}\''.format(request.session['login_id'])
+    if request.method == 'GET':
+        try:
+            rows = []
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM AGENT WHERE ID = {}'.format(changeInfo_id))
+            rows.append('AGENT INFO')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED')
+        form = ChangeInfoForm()
+        return render(request, 'cms/changeInfo.html', {'rows': rows, 'form': form})
+    elif request.method == 'POST':
+        form = ChangeInfoForm(request.POST)
+        if request.POST['action'] == 'Change Info':
+            if form.is_valid():
+                changeInfo_pw = form.cleaned_data['PW']
+                changeInfo_pw = 'PW' if changeInfo_pw == '' else '\'{}\''.format(changeInfo_pw)
+                changeInfo_name = form.cleaned_data['Name']
+                changeInfo_name = 'Name' if changeInfo_name == '' else '\'{}\''.format(changeInfo_name)
+                changeInfo_position = form.cleaned_data['Position']
+                changeInfo_position = 'Position' if changeInfo_position == '' else '\'{}\''.format(changeInfo_position)
+                changeInfo_phone = form.cleaned_data['Phone']
+                changeInfo_phone = 'Phone' if changeInfo_phone == '' else '\'{}\''.format(changeInfo_phone)
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('UPDATE AGENT SET PW = {}, Name = {}, Position = {}, Phone = {} WHERE ID = {}'.format(changeInfo_pw, changeInfo_name, changeInfo_position, changeInfo_phone, changeInfo_id))
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
+        return redirect('/cms/agent/changeInfo/')
