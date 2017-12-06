@@ -19,10 +19,11 @@
     <form action="/cms/admin/" method="GET">
       <input type="submit" name="action" value="Back to Admin Home"/>
     </form>
+    <br>
 
     {% if messages %}
       {% for message in messages %}
-        <p>{{ message }}</p>
+        {{ message }}<br>
       {% endfor %}
     {% endif %}
   </body>

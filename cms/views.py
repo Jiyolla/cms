@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django import forms
 from django.db import connection
 from django.contrib import messages
@@ -23,6 +23,12 @@ class AddCCTVForm(forms.Form):
 class AllocateCCTVForm(forms.Form):
     ID = forms.CharField(label = 'CCTV ID', max_length = 64)
     AGENT_ID = forms.CharField(label = 'Agent ID', max_length = 64)
+
+class SearchCCTVForm(forms.Form):
+    ID = forms.CharField(label = 'CCTV ID', max_length = 64, required = False)
+    Model = forms.CharField(label = 'CCTV Model', max_length = 64, required = False)
+    InstallationDate = forms.DateField(label = 'CCTV Installation Date', required = False)
+    AGENT_ID = forms.CharField(label = 'Agent ID', max_length = 64, required = False)
 
 
 def dictfetchall(cursor):
@@ -65,8 +71,20 @@ def logout(request):
         pass
     return redirect('/cms/login/')
 
-def admin(request):
-    return render(request, 'cms/adminHome.html')
+def admin(request, action):
+    if request.session.has_key('login_id'):
+        if request.session['login_id'] == 'admin':
+            if action == 'addAgent/':
+                return addAgent(request)
+            elif action == 'addCCTV/':
+                return addCCTV(request)
+            elif action == 'allocateCCTV/':
+                return allocateCCTV(request)
+            elif action == 'searchCCTV/':
+                return searchCCTV(request)
+            else:
+                return render(request, 'cms/adminHome.html')
+    return redirect('/cms/login/')
 
 def addAgent(request):
     if request.method == 'GET':
@@ -177,6 +195,49 @@ def allocateCCTV(request):
                     messages.info(request, 'DB OPERATION DENIED')
         return redirect('/cms/admin/allocateCCTV/')
 
+def searchCCTV(request):
+    if request.method == 'GET':
+        try:
+            rows = []
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM CCTV')
+            rows.append('CCTV TABLE')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED')
+        form = SearchCCTVForm()
+        return render(request, 'cms/searchCCTV.html', {'rows': rows, 'form': form})
+    elif request.method == 'POST':
+        form = SearchCCTVForm(request.POST)
+        if request.POST['action'] == 'Search CCTV':
+            if form.is_valid():
+                searchCCTV_id = form.cleaned_data['ID']
+                searchCCTV_id = 'TRUE' if searchCCTV_id == '' else 'ID = \'{}\''.format(searchCCTV_id)
+                searchCCTV_model = form.cleaned_data['Model']
+                searchCCTV_model = 'TRUE' if searchCCTV_model == '' else 'Model = \'{}\''.format(searchCCTV_model)
+                searchCCTV_installation_date = form.cleaned_data['InstallationDate']
+                searchCCTV_installation_date = 'TRUE' if not searchCCTV_installation_date else 'InstallationDate = \'{}\''.format(searchCCTV_installation_date)
+                searchCCTV_agent_id = form.cleaned_data['AGENT_ID']
+                searchCCTV_agent_id = 'TRUE' if searchCCTV_agent_id == '' else 'AGENT_ID = \'{}\''.format(searchCCTV_agent_id)
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('SELECT * FROM CCTV WHERE {} AND {} AND {} AND {}'.format(searchCCTV_id, searchCCTV_model, searchCCTV_installation_date, searchCCTV_agent_id))
+                    rows = dictfetchall(cursor)
+                    for row in rows:
+                        messages.info(request, row)
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
+        return redirect('/cms/admin/searchCCTV/')
 
-def agent(request):
-    return render(request, 'cms/agentHome.html')
+
+def agent(request, action):
+    if request.session.has_key('login_id'):
+        if action == 'changeInfo/':
+            return addAgent(request)
+        elif action == 'manageCCTV/':
+            return addCCTV(request)
+        elif action == 'uploadData/':
+            return allocateCCTV(request)
+        else:
+            return render(request, 'cms/agentHome.html')
+    return redirect('/cms/login/')
