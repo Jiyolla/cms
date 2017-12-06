@@ -9,7 +9,7 @@
     {{i}}
     <br>
     {% endfor %}
-    <form action="/cms/admin/addAgent/" method="POST" novalidate>
+    <form action="/cms/admin/addAgent/" method="POST">
       {% csrf_token %}
       {{ form.as_p }}
       <input type="submit" name="action" value="Add Agent"/>

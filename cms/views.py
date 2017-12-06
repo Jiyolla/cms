@@ -26,9 +26,9 @@ def login(request):
         if request.session.has_key('login_id'):
             login_id = request.session['login_id']
             if login_id == 'admin':
-                return render(request, 'cms/adminHome.html')
+                return redirect('/cms/admin/')
             else:
-                return render(request, 'cms/agentHome.html')
+                return redirect('/cms/agent/')
         else:
             form = LoginForm()
             return render(request, 'cms/login.html', {'form': form})
@@ -42,7 +42,7 @@ def login(request):
                 row = cursor.fetchall()
             if row:
                 request.session['login_id'] = login_id
-            return redirect('/cms/login/')
+        return redirect('/cms/login/')
 
 def logout(request):
     try:
@@ -50,6 +50,9 @@ def logout(request):
     except:
         pass
     return redirect('/cms/login/')
+
+def admin(request):
+    return render(request, 'cms/adminHome.html')
 
 def addAgent(request):
     if request.method == "GET":
@@ -80,3 +83,6 @@ def addAgent(request):
                 with connection.cursor() as cursor:
                     cursor.execute('DELETE FROM AGENT WHERE ID = %s', [removeAgent_id])
     return redirect('/cms/admin/addAgent/')
+
+def agent(request):
+    return render(request, 'cms/agentHome.html')
