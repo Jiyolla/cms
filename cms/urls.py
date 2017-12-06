@@ -4,7 +4,7 @@ from cms import views
 urlpatterns = [
     url(r'^login/$', views.login),                              #1, 3
     url(r'^logout/$',views.logout),                             #1, 3
-    #url(r'^admin/addAgent/$', views.addAgent),                  #2
+    url(r'^admin/addAgent/$', views.addAgent),                  #2
     #url(r'^admin/addCCTV/$', views.addCCTV),                    #4
     #url(r'^admin/allocateCCTV/$', views.allocateCCTV),          #5
     #url(r'^admin/searchCCTV/$', views.searchCCTV),              #6

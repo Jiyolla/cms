@@ -5,10 +5,22 @@
     <title>cms_addAgent</title>
   </head>
   <body>
-    <form action="/cms/login/" method="POST">
-        {% csrf_token %}
-        {{form}}
-        <input type="submit" value="Sign In"/>
+    {% for i in rows %}
+    {{i}}
+    <br>
+    {% endfor %}
+    <form action="/cms/admin/addAgent/" method="POST" novalidate>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" name="action" value="Add Agent"/>
+      <input type="submit" name="action" value="Remove Agent"/>
     </form>
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
   </body>
 </html>
