@@ -20,6 +20,11 @@ class AddCCTVForm(forms.Form):
     InstallationDate = forms.DateField(label = 'CCTV Installation Date', required = False)
     AGENT_ID = forms.CharField(label = 'Agent ID', max_length = 64, required = False)
 
+class AllocateCCTVForm(forms.Form):
+    ID = forms.CharField(label = 'CCTV ID', max_length = 64)
+    AGENT_ID = forms.CharField(label = 'Agent ID', max_length = 64)
+
+
 def dictfetchall(cursor):
     columns = [col[0] for col in cursor.description]
     return [
@@ -66,9 +71,11 @@ def admin(request):
 def addAgent(request):
     if request.method == 'GET':
         try:
+            rows = []
             cursor = connection.cursor()
             cursor.execute('SELECT * FROM AGENT')
-            rows = dictfetchall(cursor)
+            rows.append('AGENT TABLE')
+            rows += dictfetchall(cursor)
         except:
             messages.info(request, 'DB OPERATION DENIED')
         form = AddAgentForm()
@@ -99,9 +106,14 @@ def addAgent(request):
 
 def addCCTV(request):
     if request.method == 'GET':
-        with connection.cursor() as cursor:
+        try:
+            rows = []
+            cursor = connection.cursor()
             cursor.execute('SELECT * FROM CCTV')
-            rows = dictfetchall(cursor)
+            rows.append('CCTV TABLE')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED')
         form = AddCCTVForm()
         return render(request, 'cms/addCCTV.html', {'rows': rows, 'form': form})
     elif request.method == 'POST':
@@ -127,6 +139,44 @@ def addCCTV(request):
                 except:
                     messages.info(request, 'DB OPERATION DENIED')
         return redirect('/cms/admin/addCCTV/')
+
+def allocateCCTV(request):
+    if request.method == 'GET':
+        try:
+            rows = []
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM CCTV')
+            rows.append('CCTV TABLE')
+            rows += dictfetchall(cursor)
+            cursor.execute('SELECT * FROM AGENT')
+            rows.append('AGENT TABLE')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED')
+        form = AllocateCCTVForm()
+        return render(request, 'cms/allocateCCTV.html', {'rows': rows, 'form': form})
+    elif request.method == 'POST':
+        form = AllocateCCTVForm(request.POST)
+        if request.POST['action'] == 'Allocate CCTV':
+            if form.is_valid():
+                allocateCCTV_id = form.cleaned_data['ID']
+                allocateCCTV_agent_id = form.cleaned_data['AGENT_ID']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('UPDATE CCTV SET AGENT_ID = %s WHERE ID = %s', [allocateCCTV_agent_id, allocateCCTV_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
+        elif request.POST['action'] == 'Deallocate CCTV':
+            if form.is_valid():
+                deallocateCCTV_id = form.cleaned_data['ID']
+                deallocateCCTV_agent_id = form.cleaned_data['AGENT_ID']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('UPDATE CCTV SET AGENT_ID = \'admin\' WHERE ID = %s', [deallocateCCTV_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED')
+        return redirect('/cms/admin/allocateCCTV/')
+
 
 def agent(request):
     return render(request, 'cms/agentHome.html')

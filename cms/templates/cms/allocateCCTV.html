@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>cms_allocateCCTV</title>
+  </head>
+  <body>
+    {% for row in rows %}
+      {{ row }}<br>
+    {% endfor %}
+
+    <form action="/cms/admin/allocateCCTV/" method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" name="action" value="Allocate CCTV"/>
+      <input type="submit" name="action" value="Deallocate CCTV"/>
+    </form>
+    <br>
+    <form action="/cms/admin/" method="GET">
+      <input type="submit" name="action" value="Back to Admin Home"/>
+    </form>
+
+    {% if messages %}
+      {% for message in messages %}
+        <p>{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+  </body>
+</html>
