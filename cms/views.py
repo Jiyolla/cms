@@ -345,11 +345,14 @@ def addSequence(request):
         try:
             rows = []
             cursor = connection.cursor()
+            cursor.execute('SELECT * FROM ADJACENT_AREA')
+            rows.append('All ADJACENT_AREAs')
+            rows += dictfetchall(cursor)
             cursor.execute('SELECT * FROM SEQUENCE')
             rows.append('All SEQUENCEs')
             rows += dictfetchall(cursor)
             cursor.execute('SELECT * FROM LINKS')
-            rows.append('ALL LINKSs')
+            rows.append('All LINKSs')
             rows += dictfetchall(cursor)
         except:
             messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
@@ -368,14 +371,16 @@ def addSequence(request):
                     pass
                 try:
                     cursor = connection.cursor()
-                    sql_SeqAdjAreas = 'SELECT DISTINCT ADJACENT_AREA_PathName FROM LINKS WHERE SEQUENCE_ID = \'{}\''.format(addSequence_id)
-                    sql_SeqArea1s = 'SELECT Area1_ID FROM ADJACENT_AREA WHERE PathName IN ({})'.format(sql_SeqAdjAreas)
-                    sql_SeqArea2s = 'SELECT Area2_ID FROM ADJACENT_AREA WHERE PathName IN ({})'.format(sql_SeqAdjAreas)
-                    sql_SqlAreas = '({}) UNION ({})'.format(sql_SeqArea1s, sql_SeqArea2s)
-                    cursor.execute('SELECT * FROM ADJACENT_AREA WHERE PathName = \'{}\' AND (AREA1_ID IN {} OR AREA2_ID IN {})'.format(addSequence_adjacent_area_path_name, sql_SeqAdjAreas, sql_SeqAdjAreas))
+                    cursor.execute('SELECT * FROM LINKS WHERE SEQUENCE_ID = %s', [addSequence_id])
                     row = cursor.fetchone()
-                    if row:
+                    if not row:
                         cursor.execute('INSERT INTO LINKS VALUES (%s, %s)', [addSequence_id, addSequence_adjacent_area_path_name])
+                    else:
+                        del row
+                        cursor.execute('SELECT * FROM ADJACENT_AREA WHERE PathName = \'{}\' AND ((AREA1_ID IN (SELECT AREA1_ID FROM ADJACENT_AREA WHERE PathName IN (SELECT DISTINCT ADJACENT_AREA_PathName FROM LINKS WHERE SEQUENCE_ID = \'{}\')) OR AREA1_ID IN (SELECT AREA2_ID FROM ADJACENT_AREA WHERE PathName IN (SELECT DISTINCT ADJACENT_AREA_PathName FROM LINKS WHERE SEQUENCE_ID = \'{}\'))) OR (AREA2_ID IN (SELECT AREA1_ID FROM ADJACENT_AREA WHERE PathName IN (SELECT DISTINCT ADJACENT_AREA_PathName FROM LINKS WHERE SEQUENCE_ID = \'{}\')) OR AREA2_ID IN (SELECT AREA2_ID FROM ADJACENT_AREA WHERE PathName IN (SELECT DISTINCT ADJACENT_AREA_PathName FROM LINKS WHERE SEQUENCE_ID = \'{}\'))))'.format(addSequence_adjacent_area_path_name, addSequence_id, addSequence_id, addSequence_id, addSequence_id))
+                        row = cursor.fetchone()
+                        if row:
+                            cursor.execute('INSERT INTO LINKS VALUES (%s, %s)', [addSequence_id, addSequence_adjacent_area_path_name])
                 except:
                     messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         elif request.POST['action'] == 'Remove Sequence':

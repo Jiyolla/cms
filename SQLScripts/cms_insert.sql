@@ -22,12 +22,6 @@ INSERT INTO META_LOG_FILE VALUES ('meta_log_file_3', 'cctv_3', 'area_3', '2017-0
 INSERT INTO META_LOG_FILE VALUES ('meta_log_file_4', 'cctv_4', 'area_4', '2017-03-02 14:43:21', '2018-01-01 01:00:00');
 INSERT INTO META_LOG_FILE VALUES ('meta_log_file_5', 'cctv_5', 'area_5', '2017-03-02 14:43:21', '2018-01-01 01:00:00');
 
-INSERT INTO OBJECT VALUES ('object_1', 123, 22, 11, 25, 42);
-INSERT INTO OBJECT VALUES ('object_2', 142, 25, 22, -12, 15);
-INSERT INTO OBJECT VALUES ('object_3', 89, 17, 33, 15, -29);
-INSERT INTO OBJECT VALUES ('object_4', 100, 32, 123, -5, -6);
-INSERT INTO OBJECT VALUES ('object_5', 0, 24, 440011, 5, 42);
-
 INSERT INTO ADJACENT_AREA VALUES ('adjacent_area_1', 'Baekyang Ro', 'area_1', 'area_2');
 INSERT INTO ADJACENT_AREA VALUES ('adjacent_area_2', 'Hanjong Ro', 'area_2', 'area_3');
 INSERT INTO ADJACENT_AREA VALUES ('adjacent_area_3', 'Gongreung Ro', 'area_1', 'area_3');
@@ -46,17 +40,11 @@ INSERT INTO LINKS VALUES ('sequence_3', 'adjacent_area_3');
 INSERT INTO LINKS VALUES ('sequence_4', 'adjacent_area_4');
 INSERT INTO LINKS VALUES ('sequence_5', 'adjacent_area_5');
 
-INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_1');
-INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_2');
-INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_3');
-INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_4');
-INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_5');
-
-INSERT INTO CAPTURES VALUES ('2001-02-11 11:00:00', 'object_1');
-INSERT INTO CAPTURES VALUES ('2001-02-11 11:00:00', 'object_2');
-INSERT INTO CAPTURES VALUES ('2001-02-11 11:00:00', 'object_3');
-INSERT INTO CAPTURES VALUES ('2001-02-11 11:00:00', 'object_4');
-INSERT INTO CAPTURES VALUES ('2001-02-11 11:00:00', 'object_5');
+INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_1', 'object_1', 123, 22, 11, 25, 42);
+INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_2', 'object_2', 142, 25, 22, -12, 15);
+INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_3', 'object_3', 89, 17, 33, 15, -29);
+INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_4', 'object_4', 100, 32, 123, -5, -6);
+INSERT INTO META_LOG_RECORD VALUES ('2001-02-11 11:00:00', 'meta_log_file_5', 'object_5', 0, 24, 440011, 5, 42);
 
 INSERT INTO MONITORS VALUES ('cctv_1', 'area_1');
 INSERT INTO MONITORS VALUES ('cctv_2', 'area_2');
