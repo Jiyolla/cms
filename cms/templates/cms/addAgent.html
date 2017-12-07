@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>cms_addAgent</title>
+  </head>
+  <body>
+    {% for row in rows %}
+      {{ row }}<br>
+    {% endfor %}
+
+    <form action="/cms/admin/addAgent/" method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" name="action" value="Add Agent"/>
+      <input type="submit" name="action" value="Remove Agent"/>
+    </form>
+    <br>
+    <form action="/cms/admin/" method="GET">
+      <input type="submit" name="action" value="Back to Admin Home"/>
+    </form>
+    <br>
+
+    {% if messages %}
+      {% for message in messages %}
+        {{ message }}<br>
+      {% endfor %}
+    {% endif %}
+  </body>
+</html>

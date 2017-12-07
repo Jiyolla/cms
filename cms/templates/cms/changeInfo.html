@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>cms_changeInfo</title>
+  </head>
+  <body>
+    {% for row in rows %}
+      {{ row }}<br>
+    {% endfor %}
+
+    <form action="/cms/agent/changeInfo/" method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" name="action" value="Change Info"/>
+    </form>
+    <br>
+    {% if admin %}
+      <form action="/cms/admin/" method="GET">
+        <input type="submit" name="action" value="Back to Admin Home"/>
+      </form>
+      <br>
+    {% else %}
+      <form action="/cms/agent/" method="GET">
+        <input type="submit" name="action" value="Back to Agent Home"/>
+      </form>
+      <br>
+    {% endif %}
+
+    {% if messages %}
+      {% for message in messages %}
+        {{ message }}<br>
+      {% endfor %}
+    {% endif %}
+  </body>
+</html>
