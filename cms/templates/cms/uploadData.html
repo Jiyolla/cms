@@ -10,19 +10,21 @@
       <br />
     {% endfor %}
     {% if files %}
-      {% for row in files %}
-        <a href="{{file.Videofile.url}}">{{row.VideoFile.name}}</a>
-        <a href="{{file.Logfile.url}}">{{row.LogFile.name}}</a>
+      {% for file in files %}
+        <a href="{{file.VideoFile}}" download>{{file.VideoFile.name}}</a>
+        <a href="{{file.LogFile}}" download>{{file.LogFile.name}}</a>
         <br />
       {% endfor %}
     {% else %}
       <p>No Files uploaded</p>
     {% endif %}
+
     <form action="/cms/agent/uploadData/" method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       {{ form.as_p }}
       <input type="submit" name="action" value="Upload File"/>
     </form>
+
     <br>
     {% if admin %}
       <form action="/cms/admin/" method="GET">

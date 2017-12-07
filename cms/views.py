@@ -63,7 +63,7 @@ class AddSequenceForm(forms.Form):
     ADJACENT_AREA_PathName = forms.CharField(label = 'Adjacent Area Path Name', max_length = 64, required = False)
 
 class UploadDataForm(forms.Form):
-    VideoFile = forms.FileField(label = 'Select a video file')
+    VideoFile = forms.FileField(label = 'Select a video file', help_text = '42')
     LogFile = forms.FileField(label = 'Select a csv file')
     META_LOG_FILE_ID = forms.CharField(label = 'meta log file ID', max_length = 64)
     CCTV_ID = forms.CharField(label = 'CCTV ID', max_length = 64)
@@ -520,15 +520,15 @@ def uploadData(request):
             messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         form = UploadDataForm()
         files = File.objects.all()
-        print(files)
         return render(request, 'cms/uploadData.html',{'form': form, 'rows': rows, 'files': files, 'admin': request.session['login_id'] == 'admin'})
     elif request.method == 'POST':
         form = UploadDataForm(request.POST, request.FILES)
+        ## FORM IS INVALID
         if form.is_valid():
             print('In POST, form is valid')
-            print(request.FILES['VideoFile'])
             new_file = File(VideoFile = request.FILES['VideoFile'], LogFile = request.FILES['LogFile'])
             new_file.save()
+
         else:
             print('In POST, invalid Form')
         return redirect('/cms/agent/uploadData/')
