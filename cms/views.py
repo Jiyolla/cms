@@ -43,6 +43,13 @@ class SearchAgentForm(forms.Form):
     Phone = forms.CharField(label = 'Agent Phone', max_length = 64, required = False)
     CCTV_ID = forms.CharField(label = 'CCTV ID', max_length = 64, required = False)
 
+class ManageCCTVForm(forms.Form):
+    ID = forms.CharField(label = 'Area ID', max_length = 64)
+    Address = forms.CharField(label = 'Area Address', max_length = 64, required = False)
+    Building = forms.CharField(label = 'Area Building', required = False)
+    Floor = forms.CharField(label = 'Area Floor', max_length = 64, required = False)
+    Indoor = forms.CharField(label = 'Area Indoor', max_length = 64, required = False)
+    CCTV_ID = forms.CharField(label = 'CCTV ID', max_length = 64, required = False)
 
 def dictfetchall(cursor):
     columns = [col[0] for col in cursor.description]
@@ -72,7 +79,7 @@ def login(request):
                 cursor.execute('SELECT * FROM AGENT WHERE ID = %s AND PW = %s', [login_id, login_pw])
                 row = cursor.fetchall()
             except:
-                messages.info(request, 'DB OPERATION DENIED')
+                messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
             if row:
                 request.session['login_id'] = login_id
         return redirect('/cms/login/')
@@ -107,10 +114,10 @@ def addAgent(request):
             rows = []
             cursor = connection.cursor()
             cursor.execute('SELECT * FROM AGENT')
-            rows.append('AGENT TABLE')
+            rows.append('All AGENTs')
             rows += dictfetchall(cursor)
         except:
-            messages.info(request, 'DB OPERATION DENIED')
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         form = AddAgentForm()
         return render(request, 'cms/addAgent.html', {'rows': rows, 'form': form})
     elif request.method == 'POST':
@@ -126,7 +133,7 @@ def addAgent(request):
                     cursor = connection.cursor()
                     cursor.execute('INSERT INTO AGENT VALUES(%s, %s, %s, %s, %s)', [addAgent_id, addAgent_pw, addAgent_name, addAgent_position, addAgent_phone])
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         elif request.POST['action'] == 'Remove Agent':
             if form.is_valid():
                 removeAgent_id = form.cleaned_data['ID']
@@ -134,7 +141,7 @@ def addAgent(request):
                     cursor = connection.cursor()
                     cursor.execute('DELETE FROM AGENT WHERE ID = %s', [removeAgent_id])
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/admin/addAgent/')
 
 def addCCTV(request):
@@ -143,10 +150,10 @@ def addCCTV(request):
             rows = []
             cursor = connection.cursor()
             cursor.execute('SELECT * FROM CCTV')
-            rows.append('CCTV TABLE')
+            rows.append('All CCTVs')
             rows += dictfetchall(cursor)
         except:
-            messages.info(request, 'DB OPERATION DENIED')
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         form = AddCCTVForm()
         return render(request, 'cms/addCCTV.html', {'rows': rows, 'form': form})
     elif request.method == 'POST':
@@ -162,7 +169,7 @@ def addCCTV(request):
                     cursor = connection.cursor()
                     cursor.execute('INSERT INTO CCTV VALUES(%s, %s, %s, %s)', [addCCTV_id, addCCTV_model, addCCTV_installation_date, addCCTV_agent_id])
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         elif request.POST['action'] == 'Remove CCTV':
             if form.is_valid():
                 removeCCTV_id = form.cleaned_data['ID']
@@ -170,7 +177,7 @@ def addCCTV(request):
                     cursor = connection.cursor()
                     cursor.execute('DELETE FROM CCTV WHERE ID = %s', [removeCCTV_id])
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/admin/addCCTV/')
 
 def allocateCCTV(request):
@@ -179,13 +186,13 @@ def allocateCCTV(request):
             rows = []
             cursor = connection.cursor()
             cursor.execute('SELECT * FROM CCTV')
-            rows.append('CCTV TABLE')
+            rows.append('All CCTVs')
             rows += dictfetchall(cursor)
             cursor.execute('SELECT * FROM AGENT')
-            rows.append('AGENT TABLE')
+            rows.append('All AGENTs')
             rows += dictfetchall(cursor)
         except:
-            messages.info(request, 'DB OPERATION DENIED')
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         form = AllocateCCTVForm()
         return render(request, 'cms/allocateCCTV.html', {'rows': rows, 'form': form})
     elif request.method == 'POST':
@@ -198,7 +205,7 @@ def allocateCCTV(request):
                     cursor = connection.cursor()
                     cursor.execute('UPDATE CCTV SET AGENT_ID = %s WHERE ID = %s', [allocateCCTV_agent_id, allocateCCTV_id])
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         elif request.POST['action'] == 'Deallocate CCTV':
             if form.is_valid():
                 deallocateCCTV_id = form.cleaned_data['ID']
@@ -207,7 +214,7 @@ def allocateCCTV(request):
                     cursor = connection.cursor()
                     cursor.execute('UPDATE CCTV SET AGENT_ID = \'admin\' WHERE ID = %s', [deallocateCCTV_id])
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/admin/allocateCCTV/')
 
 def searchCCTV(request):
@@ -216,10 +223,10 @@ def searchCCTV(request):
             rows = []
             cursor = connection.cursor()
             cursor.execute('SELECT * FROM CCTV')
-            rows.append('CCTV TABLE')
+            rows.append('All CCTVs')
             rows += dictfetchall(cursor)
         except:
-            messages.info(request, 'DB OPERATION DENIED')
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         form = SearchCCTVForm()
         return render(request, 'cms/searchCCTV.html', {'rows': rows, 'form': form})
     elif request.method == 'POST':
@@ -241,7 +248,7 @@ def searchCCTV(request):
                     for row in rows:
                         messages.info(request, row)
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/admin/searchCCTV/')
 
 def searchAgent(request):
@@ -250,13 +257,13 @@ def searchAgent(request):
             rows = []
             cursor = connection.cursor()
             cursor.execute('SELECT * FROM AGENT')
-            rows.append('AGENT TABLE')
+            rows.append('All AGENTs')
             rows += dictfetchall(cursor)
             cursor.execute('SELECT * FROM CCTV')
-            rows.append('CCTV TABLE')
+            rows.append('All CCTVs')
             rows += dictfetchall(cursor)
         except:
-            messages.info(request, 'DB OPERATION DENIED')
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         form = SearchAgentForm()
         return render(request, 'cms/searchAgent.html', {'rows': rows, 'form': form})
     elif request.method == 'POST':
@@ -281,7 +288,7 @@ def searchAgent(request):
                     for row in rows:
                         messages.info(request, row)
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/admin/searchAgent/')
 
 
@@ -304,12 +311,12 @@ def changeInfo(request):
             rows = []
             cursor = connection.cursor()
             cursor.execute('SELECT * FROM AGENT WHERE ID = {}'.format(changeInfo_id))
-            rows.append('AGENT INFO')
+            rows.append('My Info')
             rows += dictfetchall(cursor)
         except:
-            messages.info(request, 'DB OPERATION DENIED')
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         form = ChangeInfoForm()
-        return render(request, 'cms/changeInfo.html', {'rows': rows, 'form': form})
+        return render(request, 'cms/changeInfo.html', {'rows': rows, 'form': form, 'admin': request.session['login_id'] == 'admin'})
     elif request.method == 'POST':
         form = ChangeInfoForm(request.POST)
         if request.POST['action'] == 'Change Info':
@@ -326,5 +333,63 @@ def changeInfo(request):
                     cursor = connection.cursor()
                     cursor.execute('UPDATE AGENT SET PW = {}, Name = {}, Position = {}, Phone = {} WHERE ID = {}'.format(changeInfo_pw, changeInfo_name, changeInfo_position, changeInfo_phone, changeInfo_id))
                 except:
-                    messages.info(request, 'DB OPERATION DENIED')
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/agent/changeInfo/')
+
+def manageCCTV(request):
+    if request.method == 'GET':
+        try:
+            rows = []
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM AREA')
+            rows.append('All AREAs')
+            rows += dictfetchall(cursor)
+            manageCCTV_agent_id = 'TRUE' if request.session['login_id'] == 'admin' else 'AGENT_ID = \'{}\''.format(request.session['login_id'])
+            cursor.execute('SELECT * FROM MONITORS WHERE CCTV_ID IN (SELECT ID FROM CCTV WHERE {})'.format(manageCCTV_agent_id))
+            rows.append('My CCTVs Monitoring AREAs')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        form = ManageCCTVForm()
+        return render(request, 'cms/manageCCTV.html', {'rows': rows, 'form': form, 'admin': request.session['login_id'] == 'admin'})
+    elif request.method == 'POST':
+        form = ManageCCTVForm(request.POST)
+        if request.POST['action'] == 'Add (Monitoring) Area':
+            if form.is_valid():
+                manageCCTV_id = form.cleaned_data['ID']
+                manageCCTV_address = form.cleaned_data['Address']
+                manageCCTV_building = form.cleaned_data['Building']
+                manageCCTV_floor = form.cleaned_data['Floor']
+                manageCCTV_indoor = form.cleaned_data['Indoor']
+                manageCCTV_cctv_id = form.cleaned_data['CCTV_ID']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('INSERT INTO AREA VALUES (%s, %s, %s, %s, %s)', [manageCCTV_id, manageCCTV_address, manageCCTV_building, manageCCTV_floor, manageCCTV_indoor])
+                except:
+                    pass
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('INSERT INTO MONITORS VALUES (%s, %s)', [manageCCTV_cctv_id, manageCCTV_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED: MONITORING CONFIGURATION FAILED')
+        elif request.POST['action'] == 'Remove Monitoring Area':
+            if form.is_valid():
+                manageCCTV_id = form.cleaned_data['ID']
+                manageCCTV_cctv_id = form.cleaned_data['CCTV_ID']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('DELETE FROM MONITORS WHERE CCTV_ID = %s AND AREA_ID = %s', [manageCCTV_cctv_id, manageCCTV_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        elif request.POST['action'] == 'Remove Area(admin only)':
+            if request.session['login_id'] != 'admin':
+                messages.info(request, 'ACCESS DENIED')
+                return redirect('/cms/agent/manageCCTV/')
+            if form.is_valid():
+                manageCCTV_id = form.cleaned_data['ID']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('DELETE FROM AREA WHERE ID = %s', [manageCCTV_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        return redirect('/cms/agent/manageCCTV/')
