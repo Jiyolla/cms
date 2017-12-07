@@ -51,6 +51,12 @@ class ManageCCTVForm(forms.Form):
     Indoor = forms.CharField(label = 'Area Indoor', max_length = 64, required = False)
     CCTV_ID = forms.CharField(label = 'CCTV ID', max_length = 64, required = False)
 
+class AddAdjacentAreaForm(forms.Form):
+    PathName = forms.CharField(label = 'Adjacent Area Path Name', max_length = 64)
+    PathPos = forms.CharField(label = 'Adjacent Area Path Pos', max_length = 64, required = False)
+    AREA1_ID = forms.CharField(label = 'Area 1 ID', max_length = 64, required = False)
+    AREA2_ID = forms.CharField(label = 'Area 2 ID', max_length = 64, required = False)
+
 def dictfetchall(cursor):
     columns = [col[0] for col in cursor.description]
     return [
@@ -104,6 +110,8 @@ def admin(request, action):
                 return searchCCTV(request)
             elif action == 'searchAgent/':
                 return searchAgent(request)
+            elif action == 'addAdjacentArea/':
+                return addAdjacentArea(request)
             else:
                 return render(request, 'cms/adminHome.html')
     return redirect('/cms/login/')
@@ -291,6 +299,40 @@ def searchAgent(request):
                     messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/admin/searchAgent/')
 
+def addAdjacentArea(request):
+    if request.method == 'GET':
+        try:
+            rows = []
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM ADJACENT_AREA')
+            rows.append('All ADJACENT_AREAs')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        form = AddAdjacentAreaForm()
+        return render(request, 'cms/addAdjacentArea.html', {'rows': rows, 'form': form})
+    elif request.method == 'POST':
+        form = AddAdjacentAreaForm(request.POST)
+        if request.POST['action'] == 'Add Adjacent Area':
+            if form.is_valid():
+                addAdjacentArea_path_name = form.cleaned_data['PathName']
+                addAdjacentArea_path_pos = form.cleaned_data['PathPos']
+                addAdjacentArea_area_1_id = form.cleaned_data['AREA1_ID']
+                addAdjacentArea_area_2_id = form.cleaned_data['AREA2_ID']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('INSERT INTO ADJACENT_AREA VALUES(%s, %s, %s, %s)', [addAdjacentArea_path_name, addAdjacentArea_path_pos, addAdjacentArea_area_1_id, addAdjacentArea_area_2_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        elif request.POST['action'] == 'Remove Adjacent Area':
+            if form.is_valid():
+                removeAdjacentArea_path_name = form.cleaned_data['PathName']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('DELETE FROM ADJACENT_AREA WHERE PathName = %s', [removeAdjacentArea_path_name])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        return redirect('/cms/admin/addAdjacentArea/')
 
 def agent(request, action):
     if request.session.has_key('login_id'):
