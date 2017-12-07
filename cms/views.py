@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, reverse
 from django import forms
 from django.db import connection
 from django.contrib import messages
+from .models import File
 
 class LoginForm(forms.Form):
     login_id = forms.CharField(label = 'ID', max_length = 64)
@@ -60,6 +61,15 @@ class AddAdjacentAreaForm(forms.Form):
 class AddSequenceForm(forms.Form):
     SEQUENCE_ID = forms.CharField(label = 'Sequence ID', max_length = 64)
     ADJACENT_AREA_PathName = forms.CharField(label = 'Adjacent Area Path Name', max_length = 64, required = False)
+
+class UploadDataForm(forms.Form):
+    VideoFile = forms.FileField(label = 'Select a video file')
+    LogFile = forms.FileField(label = 'Select a csv file')
+    META_LOG_FILE_ID = forms.CharField(label = 'meta log file ID', max_length = 64)
+    CCTV_ID = forms.CharField(label = 'CCTV ID', max_length = 64)
+    AREA_ID = forms.CharField(label = 'AREA ID', max_length = 64)
+    StartTime = forms.DateTimeField(label = 'Start Time')
+    EndTime = forms.DateTimeField(label = 'End Time')
 
 def dictfetchall(cursor):
     columns = [col[0] for col in cursor.description]
@@ -493,3 +503,34 @@ def manageCCTV(request):
                 except:
                     messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/agent/manageCCTV/')
+
+def uploadData(request):
+    uploadData_id = '\'{}\''.format(request.session['login_id'])
+    if request.method == 'GET':
+        try:
+            rows = []
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM CCTV WHERE AGENT_ID = {}'.format(uploadData_id))
+            rows.append('My CCTVs')
+            rows += dictfetchall(cursor)
+            rows.append('ALL META_LOG_FILEs')
+            cursor.execute('SELECT * FROM META_LOG_FILE')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        form = UploadDataForm()
+        files = File.objects.all()
+        print(files)
+        return render(request, 'cms/uploadData.html',{'form': form, 'rows': rows, 'files': files, 'admin': request.session['login_id'] == 'admin'})
+    elif request.method == 'POST':
+        form = UploadDataForm(request.POST, request.FILES)
+        if form.is_valid():
+            print('In POST, form is valid')
+            print(request.FILES['VideoFile'])
+            new_file = File(VideoFile = request.FILES['VideoFile'], LogFile = request.FILES['LogFile'])
+            new_file.save()
+        else:
+            print('In POST, invalid Form')
+        return redirect('/cms/agent/uploadData/')
+    else:
+        messages.info(request, 'UNSUPPORTED REQUEST')

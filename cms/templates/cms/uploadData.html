@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>cms_uploadData</title>
+  </head>
+  <body>
+    {% for row in rows %}
+      {{row}}
+      <br />
+    {% endfor %}
+    {% if files %}
+      {% for row in files %}
+        <a href="{{file.Videofile.url}}">{{row.VideoFile.name}}</a>
+        <a href="{{file.Logfile.url}}">{{row.LogFile.name}}</a>
+        <br />
+      {% endfor %}
+    {% else %}
+      <p>No Files uploaded</p>
+    {% endif %}
+    <form action="/cms/agent/uploadData/" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" name="action" value="Upload File"/>
+    </form>
+    <br>
+    {% if admin %}
+      <form action="/cms/admin/" method="GET">
+        <input type="submit" name="action" value="Back to Admin Home"/>
+      </form>
+      <br>
+    {% else %}
+      <form action="/cms/agent/" method="GET">
+        <input type="submit" name="action" value="Back to Agent Home"/>
+      </form>
+      <br>
+    {% endif %}
+  </body>
+</html>
