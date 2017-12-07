@@ -513,8 +513,8 @@ def uploadData(request):
             cursor.execute('SELECT * FROM CCTV WHERE AGENT_ID = {}'.format(uploadData_id))
             rows.append('My CCTVs')
             rows += dictfetchall(cursor)
-            rows.append('ALL META_LOG_FILEs')
-            cursor.execute('SELECT * FROM META_LOG_FILE')
+            rows.append('My META_LOG_FILEs')
+            cursor.execute('SELECT * FROM META_LOG_FILE WHERE CCTV_ID IN (SELECT CCTV_ID FROM CCTV WHERE AGENT_ID = {}'.format(uploadData_id))
             rows += dictfetchall(cursor)
         except:
             messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
@@ -528,6 +528,13 @@ def uploadData(request):
             print('In POST, form is valid')
             new_file = File(VideoFile = request.FILES['VideoFile'], LogFile = request.FILES['LogFile'])
             new_file.save()
+            ID = form.cleaned_data['META_LOG_FILE_ID']
+            CCTV_ID = form.cleaned_data['CCTV_ID']
+            AREA_ID = form.cleaned_data['AREA_ID']
+            StartTime = form.cleaned_data['StartTime']
+            EndTime = form.cleaned_data['EndTime']
+            cursor = connection.cursor()
+            cursor.execute('INSERT INTO META_LOG_FILE VALUES (%s, %s, %s, %s, %s)', [ID, CCTV_ID, AREA_ID, StartTime, EndTime])
 
         else:
             print('In POST, invalid Form')
