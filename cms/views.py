@@ -57,6 +57,10 @@ class AddAdjacentAreaForm(forms.Form):
     AREA1_ID = forms.CharField(label = 'Area 1 ID', max_length = 64, required = False)
     AREA2_ID = forms.CharField(label = 'Area 2 ID', max_length = 64, required = False)
 
+class AddSequenceForm(forms.Form):
+    SEQUENCE_ID = forms.CharField(label = 'Sequence ID', max_length = 64)
+    ADJACENT_AREA_PathName = forms.CharField(label = 'Adjacent Area Path Name', max_length = 64, required = False)
+
 def dictfetchall(cursor):
     columns = [col[0] for col in cursor.description]
     return [
@@ -112,6 +116,8 @@ def admin(request, action):
                 return searchAgent(request)
             elif action == 'addAdjacentArea/':
                 return addAdjacentArea(request)
+            elif action == 'addSequence/':
+                return addSequence(request)
             else:
                 return render(request, 'cms/adminHome.html')
     return redirect('/cms/login/')
@@ -333,6 +339,54 @@ def addAdjacentArea(request):
                 except:
                     messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
         return redirect('/cms/admin/addAdjacentArea/')
+
+def addSequence(request):
+    if request.method == 'GET':
+        try:
+            rows = []
+            cursor = connection.cursor()
+            cursor.execute('SELECT * FROM SEQUENCE')
+            rows.append('All SEQUENCEs')
+            rows += dictfetchall(cursor)
+            cursor.execute('SELECT * FROM LINKS')
+            rows.append('ALL LINKSs')
+            rows += dictfetchall(cursor)
+        except:
+            messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        form = AddSequenceForm()
+        return render(request, 'cms/addSequence.html', {'rows': rows, 'form': form})
+    elif request.method == 'POST':
+        form = AddSequenceForm(request.POST)
+        if request.POST['action'] == 'Add Sequence':
+            if form.is_valid():
+                addSequence_id = form.cleaned_data['SEQUENCE_ID']
+                addSequence_adjacent_area_path_name = form.cleaned_data['ADJACENT_AREA_PathName']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('INSERT INTO SEQUENCE VALUES (%s)', [addSequence_id])
+                except:
+                    pass
+                try:
+                    cursor = connection.cursor()
+                    sql_SeqAdjAreas = 'SELECT DISTINCT ADJACENT_AREA_PathName FROM LINKS WHERE SEQUENCE_ID = \'{}\''.format(addSequence_id)
+                    sql_SeqArea1s = 'SELECT Area1_ID FROM ADJACENT_AREA WHERE PathName IN ({})'.format(sql_SeqAdjAreas)
+                    sql_SeqArea2s = 'SELECT Area2_ID FROM ADJACENT_AREA WHERE PathName IN ({})'.format(sql_SeqAdjAreas)
+                    sql_SqlAreas = '({}) UNION ({})'.format(sql_SeqArea1s, sql_SeqArea2s)
+                    cursor.execute('SELECT * FROM ADJACENT_AREA WHERE PathName = \'{}\' AND (AREA1_ID IN {} OR AREA2_ID IN {})'.format(addSequence_adjacent_area_path_name, sql_SeqAdjAreas, sql_SeqAdjAreas))
+                    row = cursor.fetchone()
+                    if row:
+                        cursor.execute('INSERT INTO LINKS VALUES (%s, %s)', [addSequence_id, addSequence_adjacent_area_path_name])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        elif request.POST['action'] == 'Remove Sequence':
+            if form.is_valid():
+                removeSequence_id = form.cleaned_data['SEQUENCE_ID']
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute('DELETE FROM SEQUENCE WHERE ID = %s', [removeSequence_id])
+                except:
+                    messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
+        return redirect('/cms/admin/addSequence/')
 
 def agent(request, action):
     if request.session.has_key('login_id'):
