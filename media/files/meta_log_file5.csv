@@ -1,0 +1,6 @@
+TimeStamp,META_LOG_FILE_ID,ID,Speed,Size,Color,PosX,PosY
+2001-02-12 11:00:00,meta_log_file_1,object_1,123,22,11,25,42
+2001-02-13 11:00:00,meta_log_file_2,object_2,142,25,22,-12,15
+2001-02-14 11:00:00,meta_log_file_3,object_3,89,17,33,15,-29
+2001-02-15 11:00:00,meta_log_file_4,object_4,100,32,123,-5,-6
+2001-02-16 11:00:00,meta_log_file_5,object_5,0,24,440011,5,42

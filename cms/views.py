@@ -3,6 +3,8 @@ from django import forms
 from django.db import connection
 from django.contrib import messages
 from .models import File
+import csv
+import datetime
 
 class LoginForm(forms.Form):
     login_id = forms.CharField(label = 'ID', max_length = 64)
@@ -513,8 +515,8 @@ def uploadData(request):
             cursor.execute('SELECT * FROM CCTV WHERE AGENT_ID = {}'.format(uploadData_id))
             rows.append('My CCTVs')
             rows += dictfetchall(cursor)
-            rows.append('My META_LOG_FILEs')
-            cursor.execute('SELECT * FROM META_LOG_FILE WHERE CCTV_ID IN (SELECT CCTV_ID FROM CCTV WHERE AGENT_ID = {}'.format(uploadData_id))
+            rows.append('ALL META_LOG_FILEs')
+            cursor.execute('SELECT * FROM META_LOG_FILE')
             rows += dictfetchall(cursor)
         except:
             messages.info(request, 'DB OPERATION DENIED: UNKNOWN ERROR')
@@ -535,6 +537,18 @@ def uploadData(request):
             EndTime = form.cleaned_data['EndTime']
             cursor = connection.cursor()
             cursor.execute('INSERT INTO META_LOG_FILE VALUES (%s, %s, %s, %s, %s)', [ID, CCTV_ID, AREA_ID, StartTime, EndTime])
+
+            csv_file = request.FILES['LogFile']
+            for row in csv_file:
+                TimeStamp = datetime.datetime(row['TimeStamp'])
+                META_LOG_FILE_ID = row['META_LOG_FILE_ID']
+                ID = row['ID']
+                Speed = int(row['Speed'])
+                Size = int(row['Size'])
+                Color = int(row['Color'])
+                PosX = int(row['PosX'])
+                PoxY = int(row['PosY'])
+                cursor.execute('INSERT INTO META_LOG_RECORD VALUES (%s, %s, %s, %d, %d, %d, %d, %d)', [TimeStamp, META_LOG_FILE_ID, ID, Speed, Size, Color, PosX, PosY])
 
         else:
             print('In POST, invalid Form')
